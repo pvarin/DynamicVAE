@@ -1,3 +1,7 @@
+# Project Specific
+acrobot_trajectory*
+*drake-visualizer.out
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
