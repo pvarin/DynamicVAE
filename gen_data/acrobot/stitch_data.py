@@ -4,9 +4,9 @@ import json
 import os
 
 # load filenames
-path = "."
+path = "./data"
 prefix = "acrobot_trajectory_"
-filenames = [f for f in os.listdir(path) if os.path.isfile(f) and prefix in f]
+filenames = [os.path.join(path,f) for f in os.listdir(path) if os.path.isfile(os.path.join(path,f)) and prefix in f]
 
 # initialize dataset
 traj = np.loadtxt(filenames[0],dtype=np.float64,delimiter=',')
