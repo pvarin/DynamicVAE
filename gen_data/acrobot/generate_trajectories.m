@@ -22,9 +22,15 @@ function generate_trajectories(num_trajectories)
         
         t = linspace(0,xtraj.tspan(end),N);
         xtraj_data = xtraj.eval(t);
+        utraj_data = utraj.eval(t);
+        data = [t; xtraj_data; utraj_data];
         if info==1
-            filename = ['data/acrobot_trajectory_', sprintf('%05d',j)];
-            csvwrite(filename,xtraj_data);
+            filename = ['data/acrobot_trajectory_state_', sprintf('%05d.csv',j)];
+            csvwrite(filename, xtraj_data);
+            filename = ['data/acrobot_trajectory_time_', sprintf('%05d.csv',j)];
+            csvwrite(filename, t);
+            filename = ['data/acrobot_trajectory_control_', sprintf('%05d.csv',j)];
+            csvwrite(filename, utraj_data);
             j = j+1;
         end
     end
