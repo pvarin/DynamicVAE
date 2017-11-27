@@ -1,6 +1,6 @@
 function generate_trajectories(num_trajectories)
     % load the URDF
-    r = RigidBodyManipulator('acrobot.urdf');
+    r = RigidBodyManipulator('acrobot.urdf'); % this doesn not exist
     
     % generate a bunch of trajectories
     rng(2);
