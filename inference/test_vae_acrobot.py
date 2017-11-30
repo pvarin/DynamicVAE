@@ -12,26 +12,6 @@ from torch.utils.data import TensorDataset, DataLoader
 # VAE
 from vae import *
 
-def gen_data(Dx, Dz, data_size):
-    '''
-    Generates random data according to a nonlinear generative model
-    Z->X
-    '''
-    # global parameter
-    W = torch.randn(Dz, Dx)
-    
-    # training data
-    Z_train = torch.randn(N, Dz).type(torch.FloatTensor)
-    eps = 0.1*torch.randn(N, Dx).type(torch.FloatTensor)
-    X_train = torch.sin(Z_train).mm(W) + eps
-    
-    # test data
-    Z_test = torch.randn(N, Dz).type(torch.FloatTensor)
-    eps = 0.1*torch.randn(N, Dx).type(torch.FloatTensor)
-    X_test = torch.sin(Z_test).mm(W) + eps
-
-    return X_train, Z_train, X_test, Z_test
-
 # load data and seperate into training and test data
 X = np.load('../gen_data/acrobot/acrobot_trajectory_state.npy')
 X = X.transpose([0,2,1])
@@ -42,22 +22,27 @@ idx_train = np.where(mask)[0]
 idx_test = np.where(mask==False)[0]
 
 
-x_train = X[idx_train,:]
-x_test = X[idx_test,:]
+x_train = torch.Tensor(X[idx_train,:])
+x_test = torch.Tensor(X[idx_test,:])
 # dummy variables so we can use the Tensor Dataset object
-z_train = np.zeros_like(x_train)
-z_test = np.zeros_like(x_test)
 
 # generate data
-N = x_train.shape[0]
+N = x_train.size(0)
 M = 100 # minibatch size
-Dx = x_train.shape[1]
-Dz = 3
-x_train, z_train, x_test, z_test = gen_data(Dx, Dz, data_size=N)
+Dx = x_train.size(1)
+Dz = 2
+
+z_train = torch.zeros(x_train.size(0),Dz)
+z_test = torch.zeros(x_test.size(0),Dz)
+# x_train, z_train, x_test, z_test = gen_data(Dx, Dz, data_size=N)
+print("creating datasets")
 train_dataset = TensorDataset(x_train,z_train)
 test_dataset = TensorDataset(x_test,z_test)
+print("creating datasets")
 train_dataloader = DataLoader(train_dataset, batch_size=M)
 test_dataloader = DataLoader(test_dataset, batch_size=M)
+
+print("loaded data")
 
 # setup the autoencoder
 encoder = nn.Sequential(
@@ -104,7 +89,7 @@ for epoch in range(num_epochs):
             epoch+1, num_epochs, \
             elbo_train[epoch], elbo_test[epoch]))
 
-    torch.save(autoencoder.state_dict(),'acrobot_vae_parameters_epoch'+str(epoch)+'.pt')
+    torch.save(autoencoder.state_dict(),'acrobot_vae_2dim/acrobot_vae_parameters_epoch'+str(epoch)+'.pt')
 
 plt.plot(elbo_train, label='training Lower Bound')
 plt.plot(elbo_test, label='test Lower Bound')
