@@ -50,30 +50,20 @@ test_dataloader = DataLoader(xdata_test, batch_size=M)
 
 # setup the autoencoder
 encoder = nn.Sequential(
-      nn.Linear(Dx, 300),
-      nn.ReLU(),
-      nn.Dropout(p=.2),
-      nn.Linear(300,100),
-      nn.ReLU(),
-      nn.Dropout(p=.2),
-      MultiOutputLinear(100, [Dz, Dz]),
+      #nn.Linear(Dx, Dz),
+      MultiOutputLinear(Dx, [Dz, Dz]),
     )
 
 decoder = nn.Sequential(
-      nn.Linear(Dz, 100),
-      nn.ReLU(),
-      nn.Dropout(p=.2),
-      nn.Linear(100, 300),
-      nn.ReLU(),
-      nn.Dropout(p=.2),
-      MultiOutputLinear(300, [Dx, Dx]),
+      #nn.Linear(Dz, Dx),
+      MultiOutputLinear(Dz, [Dx, Dx]),
     )
 
 autoencoder = GaussianVAE(encoder, decoder, L=10)
 
 # setup the optimizer
-#learning_rate = 3e-2
-optimizer = Adam(autoencoder.parameters())#, lr=learning_rate)
+learning_rate = 3e-3
+optimizer = Adam(autoencoder.parameters(),eps=1e-3, lr=learning_rate)
 
 
 # optimize
@@ -154,7 +144,7 @@ plt.show()
 
 # visualize embedded space for each knot point
 import matplotlib.cm as cm
-N = 4000
+N = 1000
 x_latent_time = np.reshape(x_latent,(T,N,Dz))
 colors = cm.rainbow(np.linspace(0,1,T))
 for i in range(T):
@@ -298,6 +288,6 @@ for i in range(4):
 plt.show()
 
 #**** save data
-savepath = 'C:\\Users\\Kevin\\Documents\\Classes\\cs281\\vae\\coders_deeper_4000_noscale.dat'
+savepath = 'C:\\Users\\Kevin\\Documents\\Classes\\cs281\\vae\\pca_coders.dat'
 torch.save(autoencoder,savepath)
     

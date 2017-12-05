@@ -25,7 +25,7 @@ dataset['control'] = np.load(filepath + 'acrobot_trajectory_control.npy')
 
 T = dataset['state'].shape[2] # knots
 N = dataset['state'].shape[0] # observations
-N = 1000
+N = 4000
 
 # reshape data, remove time component
 xdata = np.concatenate((dataset['state'],dataset['control']),axis=1)
@@ -33,13 +33,13 @@ xdata = xdata[:N,:,:]
 xdata = np.transpose(xdata,(1,0,2))
 xdata = np.reshape(xdata,(5,T*N)).T
 
-xdata = preprocessing.scale(xdata)
+#xdata = preprocessing.scale(xdata)
 # split data
 xdata_train, xdata_test = train_test_split(xdata,test_size=.25)
 
 
 #************* run VAE
-N = xdata.shape[s1] # data size
+N = xdata.shape[1] # data size
 M = 100 # minibatch size
 Dx = 5
 Dz = 2
@@ -164,7 +164,7 @@ plt.show()
 
 # visualize embedded space for each knot point
 import matplotlib.cm as cm
-N = 1000
+N = 4000
 x_latent_time = np.reshape(x_latent,(T,N,Dz))
 colors = cm.rainbow(np.linspace(0,1,T))
 for i in range(T):
@@ -268,8 +268,52 @@ for j in range(numex):
 plt.plot(x_interpolate[:,4],linewidth=3.0,color='k')
 plt.show()
 
+
+#****** interpolate using nearby knots
+# get nearby window weights
+from scipy.stats import norm
+xdata_x0 = np.squeeze(xdata_time[1,:,0:4]) # drop control
+xdata_x0 = np.row_stack((x0.numpy()[:4],xdata_x0))
+y = squareform(pdist(xdata_x0,'euclidean'))
+dist = y[0,1:]
+idx = np.argsort(dist)
+win = norm.pdf(dist,loc=0,scale=.05) # std chosen arbitrarily
+
+# interpolate points over time
+x_interpolate_latent = torch.zeros((T,2))
+x_interpolate_latent[0,:] = x0_latent[0].data
+x_interpolate_latent[-1,:] = xf_latent[0].data
+for t in range(1,T-1):
+    x_interpolate_latent[t,0] = (x_latent_time[t,:,0]*win).sum()/(win.sum())
+    x_interpolate_latent[t,1] = (x_latent_time[t,:,1]*win).sum()/(win.sum())
+
+x_interpolate = autoencoder.decoder(Variable(x_interpolate_latent,requires_grad=False))
+x_interpolate = x_interpolate[0].data.numpy()
+
+# make plots
+# plot in latent space
+plt.scatter(x_latent[:,0],x_latent[:,1])
+plt.scatter(x0_latent[0][0].data[0],x0_latent[0][1].data[0],label='x0')
+plt.scatter(xf_latent[0][0].data[0],xf_latent[0][1].data[0],label='xf')
+plt.xlabel('VAE 1')
+plt.ylabel('VAE 2')
+plt.plot(x_interpolate_latent[:,0].numpy(),x_interpolate_latent[:,1].numpy(),color='r')
+plt.show()
+
+# plot in state dimension
+numex = 50
+fig, axs = plt.subplots(2,2)
+fig.subplots_adjust(hspace = .5, wspace=.001)
+axs = axs.ravel()
+for i in range(4):
+    for j in range(numex):
+        axs[i].plot(xdata_time[:,idx[j+1],i])
+    axs[i].plot(x_interpolate[:,i],linewidth=3.0,color='k')
+plt.show()
+
+
 #**** save data
-savepath = 'C:\\Users\\Kevin\\Documents\\Classes\\cs281\\vae\\coders_even_deeper.dat'
+savepath = 'C:\\Users\\Kevin\\Documents\\Classes\\cs281\\vae\\coders_even_deeper_4000_noscale.dat'
 torch.save(autoencoder,savepath)
 
 
