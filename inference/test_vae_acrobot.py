@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 # pytorch
 import torch
 import torch.nn as nn
-from torch.optim import Adam
+from torch.optim import Adam, SGD
 from torch.autograd import Variable
 from torch.utils.data import TensorDataset, DataLoader
 
@@ -35,14 +35,10 @@ Dz = 2
 z_train = torch.zeros(x_train.size(0),Dz)
 z_test = torch.zeros(x_test.size(0),Dz)
 # x_train, z_train, x_test, z_test = gen_data(Dx, Dz, data_size=N)
-print("creating datasets")
 train_dataset = TensorDataset(x_train,z_train)
 test_dataset = TensorDataset(x_test,z_test)
-print("creating datasets")
 train_dataloader = DataLoader(train_dataset, batch_size=M)
 test_dataloader = DataLoader(test_dataset, batch_size=M)
-
-print("loaded data")
 
 # setup the autoencoder
 encoder = nn.Sequential(
@@ -60,11 +56,12 @@ decoder = nn.Sequential(
 autoencoder = GaussianVAE(encoder, decoder, L=10)
 
 # setup the optimizer
-learning_rate = 3e-4
-optimizer = Adam(autoencoder.parameters(), lr=learning_rate)
+# learning_rate = 1e-5
+# optimizer = Adam(autoencoder.parameters())
+optimizer = SGD(autoencoder.parameters(),lr=1e-5)
 
 # optimize
-num_epochs = 20
+num_epochs = 1000
 elbo_train = np.zeros(num_epochs)
 elbo_test = np.zeros(num_epochs)
 for epoch in range(num_epochs):
@@ -89,9 +86,9 @@ for epoch in range(num_epochs):
             epoch+1, num_epochs, \
             elbo_train[epoch], elbo_test[epoch]))
 
-    torch.save(autoencoder.state_dict(),'acrobot_vae_2dim/acrobot_vae_parameters_epoch'+str(epoch)+'.pt')
+    torch.save(autoencoder.state_dict(),'acrobot_vae_2dim/acrobot_vae_parameters_epoch_{:03d}_sgd.pt'.format(epoch))
 
-plt.plot(elbo_train, label='training Lower Bound')
-plt.plot(elbo_test, label='test Lower Bound')
+plt.plot(elbo_train, label='training Evidence Lower Bound')
+plt.plot(elbo_test, label='test Evidence Lower Bound')
 plt.legend()
 plt.show()
