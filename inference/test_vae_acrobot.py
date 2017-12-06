@@ -1,5 +1,6 @@
 # plotting
 import numpy as np
+from sklearn.preprocessing import normalize
 import matplotlib.pyplot as plt
 
 # pytorch
@@ -16,6 +17,7 @@ from vae import *
 X = np.load('../gen_data/acrobot/acrobot_trajectory_state.npy')
 X = X.transpose([0,2,1])
 X = X.reshape((-1,X.shape[-1]))
+X = normalize(X, axis=0, norm='l2')
 
 mask = np.random.binomial(1,.9,size=X.shape[0]).astype(bool)
 idx_train = np.where(mask)[0]
@@ -56,12 +58,11 @@ decoder = nn.Sequential(
 autoencoder = GaussianVAE(encoder, decoder, L=10)
 
 # setup the optimizer
-# learning_rate = 1e-5
-# optimizer = Adam(autoencoder.parameters())
-optimizer = SGD(autoencoder.parameters(),lr=1e-5)
+optimizer = Adam(autoencoder.parameters())
+# optimizer = SGD(autoencoder.parameters(),lr=1e-5)
 
 # optimize
-num_epochs = 1000
+num_epochs = 50
 elbo_train = np.zeros(num_epochs)
 elbo_test = np.zeros(num_epochs)
 for epoch in range(num_epochs):
@@ -86,7 +87,7 @@ for epoch in range(num_epochs):
             epoch+1, num_epochs, \
             elbo_train[epoch], elbo_test[epoch]))
 
-    torch.save(autoencoder.state_dict(),'acrobot_vae_2dim/acrobot_vae_parameters_epoch_{:03d}_sgd.pt'.format(epoch))
+    torch.save(autoencoder.state_dict(),'acrobot_vae_2dim/acrobot_vae_parameters_epoch_{:03d}_adam.pt'.format(epoch))
 
 plt.plot(elbo_train, label='training Evidence Lower Bound')
 plt.plot(elbo_test, label='test Evidence Lower Bound')
