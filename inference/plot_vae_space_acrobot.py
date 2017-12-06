@@ -48,22 +48,14 @@ def plotAcrobot(ax, state):
     ax.add_patch(c1)
     ax.add_patch(c2)
     
-    # plot rotation vectors    
-    u1,v1 = -np.cos(theta2),np.sin(theta2)
-    u2,v2 = -np.cos(theta1),np.sin(theta1)
-    
-    # me messing around...
-    u1,v1 = np.sin(theta1),np.cos(theta1)
-    u2,v2 = np.sin(theta2),np.cos(theta2)
-    u1,v1 = np.sin(theta1+np.pi/2),np.cos(theta1+np.pi/2)
-    u2,v2 = np.sin(theta2+np.pi/2),np.cos(theta2+np.pi/2)
+    # vectors
     u1,v1 = y1,-x1
     u2,v2 = y2-y1,-x2-x1
     
     u1,v1 = u1*state[2],v1*state[2]
     u2,v2 = u2*state[3],v2*state[3]    
     
-    ax.quiver([x1,x2],[y1,y2],[u1,u2],[v1,v2],scale=1000)
+    ax.quiver([x1,x2],[y1,y2],[u1,u2],[v1,v2])
     
     # fix axes (to l1+l2)
     ax.set_xlim(-l1-l2-r, l1+l2+r)
@@ -97,8 +89,8 @@ autoencoder = torch.load(modelpath)
 
 
 # make vae plots
-unit = 1
-nx,ny = (12,12)
+unit = 2
+nx,ny = (9,9)
 x = np.linspace(-unit,unit,nx)
 y = np.linspace(-unit,unit,ny)
 xv,yv = np.meshgrid(x,y)

@@ -123,6 +123,8 @@ for epoch in range(num_epochs):
 plt.plot(elbo_train, label='training Lower Bound')
 plt.plot(elbo_test, label='test Lower Bound')
 plt.legend()
+plt.xlabel('epoch')
+plt.ylabel('elbo')
 plt.show()
 
 #reconstruction
